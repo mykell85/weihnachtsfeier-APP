@@ -1,0 +1,17 @@
+MOB-Weihnachtsfeier 2026 – WICHTELCODES
+
+Christian  2412
+Bene       7314
+Felix      5086
+Simon      1937
+Giovanni   8642
+Cornelius  4269
+Marco      3571
+Daniel     6805
+Michael    9128
+
+Diese Datei bleibt im Projektordner und liegt NICHT im öffentlichen /public-Ordner.
+Die Gäste bekommen nur ihren eigenen Code.
+
+Hinweis:
+Die Codes sind für ein Partyspiel gedacht, nicht als Hochsicherheits-Login.

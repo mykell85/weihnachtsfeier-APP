@@ -26,9 +26,9 @@ export default async () => {
     await saveState(state);
     return;
   }
-  const {effect}=applyChaosCard(state,card);
+  const {effect,changes}=applyChaosCard(state,card);
   state.chaos.used.push(card.id);
-  state.chaos.current={...card,effect,drawnAt:new Date().toISOString()};
+  state.chaos.current={...card,effect,changes,drawnAt:new Date().toISOString()};
   state.chaos.history.unshift(state.chaos.current);
   await saveState(state);
   await sendPush({

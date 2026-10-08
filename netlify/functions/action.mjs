@@ -1,5 +1,5 @@
-import { authName } from "./_lib/config.mjs";
-import { getState, saveState, sanitizeState, drawTeamsInto, drawMissionInto, redrawMissionInto, finishMissionInto, applySongPoints } from "./_lib/game.mjs";
+import { authName, ADMIN_PIN } from "./_lib/config.mjs";
+import { getState, saveState, sanitizeState, drawTeamsInto, drawMissionInto, redrawMissionInto, finishMissionInto, applySongPoints, resetEverything } from "./_lib/game.mjs";
 export default async (req) => {
   const name=authName(req);
   if(!name) return Response.json({error:"Nicht angemeldet"},{status:401});
@@ -26,6 +26,9 @@ export default async (req) => {
   }else if(type==="resetMissions"){
     state.turnIndex=0;
     state.mission={used:[],active:null,history:[]};
+  }else if(type==="adminReset"){
+    if(String(body.adminPin||"")!==ADMIN_PIN) return Response.json({error:"Admin-Code falsch."},{status:403});
+    state=await resetEverything();
   }else{
     return Response.json({error:"Unbekannte Aktion"},{status:400});
   }

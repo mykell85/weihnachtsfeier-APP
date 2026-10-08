@@ -53,7 +53,8 @@ export function sanitizeState(s){
     scores:s.scores,
     turnIndex:s.turnIndex,
     mission:s.mission,
-    chaos:s.chaos
+    chaos:s.chaos,
+    missionTotal:MISSIONS.length
   };
 }
 export function drawTeamsInto(state){
@@ -112,34 +113,40 @@ export function applySongPoints(state,player){
 }
 export function applyChaosCard(state,card){
   let effect="";
+  let changes=[];
   const teams=state.teams;
-  if(!teams) return {state,effect:"Noch keine Teams ausgelost."};
+  if(!teams) return {state,effect:"Noch keine Teams ausgelost.",changes};
   if(card.type==="swap_two"){
     const pair=shuffle(TEAM_ORDER).slice(0,2);
     const [a,b]=pair;
     const ia=Math.floor(Math.random()*teams[a].length), ib=Math.floor(Math.random()*teams[b].length);
     const pa=teams[a][ia], pb=teams[b][ib];
     teams[a][ia]=pb; teams[b][ib]=pa;
-    effect=`${pa} und ${pb} tauschen die Teams.`;
+    changes=[{player:pa,from:a,to:b},{player:pb,from:b,to:a}];
+    effect=`${pa} wechselt von ${a} zu ${b}; ${pb} wechselt von ${b} zu ${a}.`;
   } else if(card.type==="rotate_three"){
     const picks=TEAM_ORDER.map(t=>({t,i:Math.floor(Math.random()*teams[t].length)}));
     const vals=picks.map(x=>teams[x.t][x.i]);
     picks.forEach((x,i)=>{teams[x.t][x.i]=vals[(i+2)%vals.length]});
-    effect=`${vals.join(" → ")} → zurück zum ersten Team.`;
+    changes=picks.map((x,i)=>({player:vals[i],from:x.t,to:picks[(i+1)%picks.length].t}));
+    effect=changes.map(x=>`${x.player}: ${x.from} → ${x.to}`).join(" · ");
   } else if(card.type==="all_bonus"){
     TEAM_ORDER.forEach(t=>state.scores[t]=(state.scores[t]||0)+2);
+    changes=TEAM_ORDER.map(t=>({team:t,points:+2}));
     effect="Jedes Team erhält +2 Punkte.";
   } else if(card.type==="leader_tax"){
     const max=Math.max(...TEAM_ORDER.map(t=>state.scores[t]||0));
     const leaders=TEAM_ORDER.filter(t=>(state.scores[t]||0)===max);
     const t=leaders[Math.floor(Math.random()*leaders.length)];
     state.scores[t]=Math.max(0,(state.scores[t]||0)-2);
+    changes=[{team:t,points:-2}];
     effect=`Team ${t} verliert 2 Punkte.`;
   } else if(card.type==="underdog_bonus"){
     const min=Math.min(...TEAM_ORDER.map(t=>state.scores[t]||0));
     const lows=TEAM_ORDER.filter(t=>(state.scores[t]||0)===min);
     const t=lows[Math.floor(Math.random()*lows.length)];
     state.scores[t]=(state.scores[t]||0)+3;
+    changes=[{team:t,points:+3}];
     effect=`Team ${t} erhält +3 Punkte.`;
   } else if(card.type==="next_double"){
     state.chaos.nextMissionMultiplier=2; effect="Die nächste erfolgreiche Mission zählt doppelt.";
@@ -152,7 +159,7 @@ export function applyChaosCard(state,card){
   } else {
     effect=card.text;
   }
-  return {state,effect};
+  return {state,effect,changes};
 }
 export function nextChaosCard(state){
   const pool=CHAOS_CARDS.filter(c=>!state.chaos.used.includes(c.id));
@@ -191,6 +198,16 @@ export async function completeSecretMission(player){
   }
   return a;
 }
+
+export async function resetEverything(){
+  const store=gameStore();
+  const priv=privateStore();
+  const fresh=initialState();
+  await store.setJSON("state",fresh);
+  await priv.delete("mail");
+  return fresh;
+}
+
 export function subscriptionKey(endpoint){
   return "push/"+createHash("sha256").update(endpoint).digest("hex");
 }

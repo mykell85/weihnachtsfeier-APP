@@ -44,4 +44,24 @@ Spieler ausgeliefert. Beim Erledigen gibt es +5 Punkte für das aktuelle Team.
 
 WICHTIG:
 Die aktuell hinterlegten 9 Spieler sind:
-Christian, Bene, Felix, Simon, Giovanni, Cornelius, Marco, Daniel, Michael.
+Christian, Bene, Felix, Sven, Giovanni, Cornelius, Marco, Daniel, Michael.
+
+ADMIN-RESET:
+Im Ranking-Bereich gibt es einen Admin-Reset. Standardcode: 2026. Für Produktion kann ADMIN_PIN als Netlify-Umgebungsvariable gesetzt werden.
+
+DESIGN-UPDATE MOCKUP-STIL:
+- neue atmosphaerische Bereichs-Hintergruende fuer Start, Missionen, Wichtelpost, Lieder und Rangliste
+- Giovanni und Marco als neue Wichtelbilder integriert
+- Simon vollstaendig durch Sven ersetzt (Sven uebernimmt den bisherigen Code 1937)
+- Lieder-Rad mit Lichtanimation, Dreh-Sound, Glocken-Finale und Lyrics unter dem gezogenen Lied
+- Team-Rangliste bleibt erhalten und ist als animiertes Balkendiagramm umgesetzt
+- Admin-Komplettreset im Ranking; Standardcode 2026
+
+HINWEIS ZU BESTEHENDEN TESTDATEN:
+Nach diesem Update einmal den Admin-Komplettreset benutzen, damit alte Simon-/Team-/Mission-Daten aus Netlify Blobs geloescht werden.
+
+
+UPDATE FINAL:
+- Missionsdeck auf 24 kuratierte Missionen reduziert; Punkte 2–5 nach Aufwand.
+- Teamwechsel durch Chaos-Karten werden serverseitig sofort ausgeführt.
+- Die aktive Chaos-Karte zeigt die betroffenen Wichtel mit vorherigem/neuem Team und Animation an.

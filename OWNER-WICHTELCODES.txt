@@ -3,7 +3,7 @@ MOB-Weihnachtsfeier 2026 – WICHTELCODES
 Christian  2412
 Bene       7314
 Felix      5086
-Simon      1937
+Sven       1937
 Giovanni   8642
 Cornelius  4269
 Marco      3571
@@ -15,3 +15,5 @@ Die Gäste bekommen nur ihren eigenen Code.
 
 Hinweis:
 Die Codes sind für ein Partyspiel gedacht, nicht als Hochsicherheits-Login.
+
+Admin-Reset-Code: 2026

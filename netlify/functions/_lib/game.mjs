@@ -37,6 +37,16 @@ export async function getState(){
   s.scores ||= {Rentiere:0,Glühwein:0,Lametta:0};
   s.mission ||= {used:[],active:null,history:[]};
   s.chaos ||= {active:false,used:[],current:null,history:[],nextMissionMultiplier:1,nextMissionBonus:0,nextSongMultiplier:1,redrawAvailable:false};
+  // Migration für alte Testdaten: Simon wurde in der finalen Spielerliste durch Sven ersetzt.
+  let migrated=false;
+  if(s.teams){
+    for(const team of TEAM_ORDER){
+      s.teams[team]=(s.teams[team]||[]).map(name=>name==="Simon"?(migrated=true,"Sven"):name);
+    }
+  }
+  if(s.mission.active?.performer==="Simon"){s.mission.active.performer="Sven";migrated=true;}
+  for(const h of (s.mission.history||[])){if(h.performer==="Simon"){h.performer="Sven";migrated=true;}}
+  if(migrated) await store.setJSON("state",s);
   return s;
 }
 export async function saveState(s){

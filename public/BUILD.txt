@@ -1,1 +1,1 @@
-MOB Weihnachtsfeier – BOARD-V1.2-NETLIFY – Startseite + Login + Spielleiter + Simon/Peter
+MOB Weihnachtsfeier – BOARD-V1.3-NETLIFY – LoginGate + CrewSliderFix

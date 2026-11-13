@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#071a2c">
 <title>MOB-Weihnachtsfeier 2026</title>
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="stylesheet" href="/styles.css?v=board12">
+<link rel="stylesheet" href="/styles.css?v=board13">
 </head>
 <body>
 <div id="app" class="app">
@@ -19,8 +19,8 @@
           <img id="crewRightImg" class="crew-live-avatar right" alt="">
           <div id="crewLeftName" class="crew-live-name left"></div>
           <div id="crewRightName" class="crew-live-name right"></div>
-          <button class="crew-hit left" type="button" onclick="moveCrew(-1)" aria-label="Vorherige Wichtel"></button>
-          <button class="crew-hit right" type="button" onclick="moveCrew(1)" aria-label="Nächste Wichtel"></button>
+          <button class="crew-hit left" type="button" id="crewPrev" aria-label="Vorherige Wichtel"></button>
+          <button class="crew-hit right" type="button" id="crewNext" aria-label="Nächste Wichtel"></button>
           <div id="crewDots" class="crew-dots-live"></div>
         </div>
         <div class="asset-schedule" aria-label="Tagesablauf">
@@ -72,7 +72,7 @@
 
 <div id="toast" class="toast"></div>
 
-<div id="loginModal" class="modal hidden">
+<div id="loginModal" class="modal">
  <div class="modal-card parchment login-card">
   <h2>🎅 Wichtel-Login</h2>
   <p>Dein Name und dein vierstelliger Wichtelcode.</p><div class="spielleiter-note">🧪 Zum Testen: <strong>Spielleiter</strong> wählen. Dieser Account darf immer würfeln, unabhängig davon, welches Team gerade am Zug ist.</div>
@@ -127,10 +127,10 @@
   <p>Setzt Teams, Positionen, Punkte, gezogene Aufgaben und Wichtelpost zurück. Die letzte Partie wird nur für die Anti-Wiederholungslogik gemerkt.</p>
   <label>Admin-Code<input id="adminPin" inputmode="numeric" maxlength="6" placeholder="2026"></label>
   <button id="resetBtn" class="danger">Komplette Partie zurücksetzen</button>
-  <p class="build">Build: BOARD-V1.2-NETLIFY</p>
+  <p class="build">Build: BOARD-V1.3-NETLIFY</p>
  </div>
 </div>
 
-<script type="module" src="/app.js?v=board12"></script>
+<script type="module" src="/app.js?v=board13"></script>
 </body>
 </html>

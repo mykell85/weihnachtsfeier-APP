@@ -4,56 +4,66 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#071a2c">
-<title>MOB-Weihnachtsfeier 2026 · Brettspiel</title>
+<title>MOB-Weihnachtsfeier 2026</title>
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="stylesheet" href="/styles.css?v=board1">
+<link rel="stylesheet" href="/styles.css?v=board12">
 </head>
 <body>
 <div id="app" class="app">
-  <main class="board-page">
-    <section class="board" id="board">
-      <div class="top-branch"></div>
-      <header class="wood-title">WICHTEL-CREW</header>
-      <button id="loginChip" class="login-chip" type="button">🎅 Anmelden</button>
-
-      <aside class="score-panel" aria-label="Teams und Punkte">
-        <div class="score-heading">Teams & Punkte</div>
-        <div class="score-row"><span>🦌 Rentiere</span><strong id="scoreR">0 P</strong></div>
-        <div class="score-row"><span>🍷 Glühwein</span><strong id="scoreG">0 P</strong></div>
-        <div class="score-row"><span>✨ Lametta</span><strong id="scoreL">0 P</strong></div>
-      </aside>
-
-      <div id="routeLayer" class="route-layer">
-        <svg id="routeSvg" class="route-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline id="routeLine" points=""/></svg>
-        <div id="fields"></div>
-        <div id="tokens"></div>
-      </div>
-
-      <div class="finish-sign">🏁 ZIEL</div>
-      <div class="start-sign">START</div>
-
-      <section class="turn-card">
-        <small>Am Zug</small>
-        <strong id="turnLabel">–</strong>
-        <span id="turnHint">Bitte anmelden</span>
-      </section>
-
-      <section class="dice-dock">
-        <div id="dice" class="dice" aria-live="polite"><span id="diceFace">❄️</span></div>
-        <button id="rollBtn" class="roll-btn" type="button" disabled>WÜRFELN</button>
-      </section>
-
-      <div class="legend">
-        <span class="legend-item mission">🎁 Mission</span>
-        <span class="legend-item secret">✉️ Wichtelpost</span>
-        <span class="legend-item chaos">🃏 Chaos</span>
-        <span class="legend-item song">🎵 Lieder-Rad</span>
+  <main>
+    <section id="homePage" class="page home-page active">
+      <div class="home-shell">
+        <div id="assetCrew" class="asset-crew" aria-label="Wichtel-Crew">
+          <img class="crew-art" src="/assets/crew-panel.webp" alt="">
+          <img id="crewLeftImg" class="crew-live-avatar left" alt="">
+          <img id="crewRightImg" class="crew-live-avatar right" alt="">
+          <div id="crewLeftName" class="crew-live-name left"></div>
+          <div id="crewRightName" class="crew-live-name right"></div>
+          <button class="crew-hit left" type="button" onclick="moveCrew(-1)" aria-label="Vorherige Wichtel"></button>
+          <button class="crew-hit right" type="button" onclick="moveCrew(1)" aria-label="Nächste Wichtel"></button>
+          <div id="crewDots" class="crew-dots-live"></div>
+        </div>
+        <div class="asset-schedule" aria-label="Tagesablauf">
+          <img class="schedule-art" src="/assets/schedule-panel.webp" alt="">
+          <div class="schedule-content">
+            <div class="schedule-row"><div class="schedule-time">10:45</div><div class="schedule-icon">🎄</div><div class="schedule-event">Wichtel-Treffpunkt · Bettrath Kirche</div></div>
+            <div class="schedule-row"><div class="schedule-time">11:00</div><div class="schedule-icon">🛷</div><div class="schedule-event">Große Schlittenfahrt</div></div>
+            <div class="schedule-row"><div class="schedule-time">13:00</div><div class="schedule-icon">✨</div><div class="schedule-event">Willicher Winterdorf</div></div>
+            <div class="schedule-row"><div class="schedule-time">14:00</div><div class="schedule-icon">🥌</div><div class="schedule-event">Rentier-Curling</div></div>
+            <div class="schedule-row"><div class="schedule-time">15:00</div><div class="schedule-icon">🎅</div><div class="schedule-event">Aufbruch ins Winterreich</div></div>
+            <div class="schedule-row"><div class="schedule-time">15:20</div><div class="schedule-icon">🏰</div><div class="schedule-event">Liedberger Weihnachtszauber</div></div>
+            <div class="schedule-row"><div class="schedule-time">18:00</div><div class="schedule-icon">🔔</div><div class="schedule-event">Glockenschlag zur Abreise</div></div>
+            <div class="schedule-row"><div class="schedule-time">18:30</div><div class="schedule-icon">🍽️</div><div class="schedule-event">Olympisches Wichtelmahl · Ela</div></div>
+            <div class="schedule-row"><div class="schedule-time">Open End</div><div class="schedule-icon">🎁</div><div class="schedule-event">Weihnachtseskalation</div></div>
+          </div>
+        </div>
       </div>
     </section>
+    <section id="boardPage" class="page board-page">
+      <section class="board" id="board">
+        <div class="top-branch"></div>
+        <header class="wood-title">WICHTEL-BRETTSPIEL</header>
+        <button id="loginChip" class="login-chip" type="button">🎅 Anmelden</button>
+        <aside class="score-panel" aria-label="Teams und Punkte">
+          <div class="score-heading">Teams & Punkte</div>
+          <div class="score-row"><span>🦌 Rentiere</span><strong id="scoreR">0 P</strong></div>
+          <div class="score-row"><span>🍷 Glühwein</span><strong id="scoreG">0 P</strong></div>
+          <div class="score-row"><span>✨ Lametta</span><strong id="scoreL">0 P</strong></div>
+        </aside>
+        <div id="routeLayer" class="route-layer">
+          <svg id="routeSvg" class="route-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline id="routeLine" points=""/></svg>
+          <div id="fields"></div><div id="tokens"></div>
+        </div>
+        <div class="finish-sign">🏁 ZIEL</div><div class="start-sign">START</div>
+        <section class="turn-card"><small>Am Zug</small><strong id="turnLabel">–</strong><span id="turnHint">Bitte anmelden</span></section>
+        <section class="dice-dock"><div id="dice" class="dice" aria-live="polite"><span id="diceFace">❄️</span></div><button id="rollBtn" class="roll-btn" type="button" disabled>WÜRFELN</button></section>
+        <div class="legend"><span class="legend-item mission">🎁 Mission</span><span class="legend-item secret">✉️ Wichtelpost</span><span class="legend-item chaos">🃏 Chaos</span><span class="legend-item song">🎵 Lieder-Rad</span></div>
+      </section>
+    </section>
   </main>
-
   <nav class="bottom-nav">
-    <button class="nav-btn active" data-nav="board">🎲<span>Spielbrett</span></button>
+    <button class="nav-btn active" data-nav="home">🎄<span>Start</span></button>
+    <button class="nav-btn" data-nav="board">🎲<span>Spielbrett</span></button>
     <button class="nav-btn" data-nav="mail">📮<span>Wichtelpost</span><b id="mailBadge" class="badge hidden">0</b></button>
     <button class="nav-btn" data-nav="rank">🏆<span>Rangliste</span></button>
     <button class="nav-btn" data-nav="settings">⚙️<span>Admin</span></button>
@@ -64,9 +74,8 @@
 
 <div id="loginModal" class="modal hidden">
  <div class="modal-card parchment login-card">
-  <button class="x" data-close="loginModal">×</button>
   <h2>🎅 Wichtel-Login</h2>
-  <p>Dein Name und dein vierstelliger Wichtelcode.</p>
+  <p>Dein Name und dein vierstelliger Wichtelcode.</p><div class="spielleiter-note">🧪 Zum Testen: <strong>Spielleiter</strong> wählen. Dieser Account darf immer würfeln, unabhängig davon, welches Team gerade am Zug ist.</div>
   <label>Name<select id="loginName"></select></label>
   <label>Wichtelcode<input id="loginPin" inputmode="numeric" maxlength="4" placeholder="••••"></label>
   <button id="loginBtn" class="primary">Anmelden</button>
@@ -77,7 +86,7 @@
 <div id="setupModal" class="modal hidden">
  <div class="modal-card parchment">
   <h2>🎄 Neue Weihnachtsrunde</h2>
-  <p>Die neun Wichtel werden zufällig auf Rentiere, Glühwein und Lametta verteilt. Danach beginnt Team Rentiere.</p>
+  <p>Die zehn Wichtel werden zufällig auf Rentiere, Glühwein und Lametta verteilt. Danach beginnt Team Rentiere.</p>
   <button id="startBtn" class="primary">Teams auslosen & Spiel starten</button>
  </div>
 </div>
@@ -118,10 +127,10 @@
   <p>Setzt Teams, Positionen, Punkte, gezogene Aufgaben und Wichtelpost zurück. Die letzte Partie wird nur für die Anti-Wiederholungslogik gemerkt.</p>
   <label>Admin-Code<input id="adminPin" inputmode="numeric" maxlength="6" placeholder="2026"></label>
   <button id="resetBtn" class="danger">Komplette Partie zurücksetzen</button>
-  <p class="build">Build: BOARD-V1-VERCEL</p>
+  <p class="build">Build: BOARD-V1.2-NETLIFY</p>
  </div>
 </div>
 
-<script type="module" src="/app.js?v=board1"></script>
+<script type="module" src="/app.js?v=board12"></script>
 </body>
 </html>

@@ -1,23 +1,14 @@
-# MOB-Weihnachtsfeier – Netlify Brettspiel v1.1
+# MOB-Weihnachtsfeier 2026 – Netlify Brettspiel v1.2
 
-## Deployment
-1. Den Inhalt dieses Ordners in den Root deines GitHub-Repositories kopieren.
-2. Alte Root-Dateien aus früheren Versionen entfernen, insbesondere alte `index.html`, `api/`, `vercel.json` und doppelte Functions.
-3. Commit + Push auf den Production-Branch.
-4. Netlify liest `netlify.toml` automatisch:
-   - Build command: `npm run build`
-   - Publish: `public`
-   - Functions: `netlify/functions`
-5. In Netlify unter Environment variables setzen:
-   - `SESSION_SECRET` = langer zufälliger Wert
-   - optional `ADMIN_PIN` (Standard im Code: 2026)
-6. Danach `Clear cache and deploy site` ausführen.
+- Login-Maske erscheint direkt.
+- Startseite mit Wichtel-Crew und Agenda ist wieder da.
+- Brettspiel ist ein eigener Menüpunkt.
+- Spielleiter-Testlogin: `Spielleiter` / `2026`.
+- Spielleiter darf unabhängig vom aktiven Team würfeln und Aktionen bestätigen.
+- Spieler: Christian, Bene, Felix, Sven, Giovanni, Cornelius, Marco, Michael, Simon, Peter.
+- Daniel ist entfernt.
+- Simon und Peter liegen unter `public/avatars/`.
 
-## Gemeinsamer Spielstand
-Der shared Spielstand liegt in Netlify Blobs mit Strong Consistency. Es ist keine Upstash-/Vercel-Konfiguration nötig.
+Beim GitHub-Upload bitte alte Legacy-Dateien löschen, insbesondere `chaos-hourly.mjs`, `subscribe.mjs`, alte Root-Functions und alte Root-`index.html`.
 
-## API
-Die App ruft weiterhin `/api/login`, `/api/status`, `/api/action`, `/api/inbox` auf. Netlify leitet diese URLs über Redirects auf die Functions um.
-
-## Build-Marker
-`public/BUILD.txt` enthält den Versionshinweis. Diese Datei ist nach Deployment unter `/BUILD.txt` erreichbar.
+Build-Marker: `/BUILD.txt` → `BOARD-V1.2-NETLIFY`.

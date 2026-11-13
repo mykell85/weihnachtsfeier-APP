@@ -1,0 +1,12 @@
+WICHTIG BEIM GITHUB-UPLOAD
+
+Bitte dieses Paket als vollständigen aktuellen Repo-Stand behandeln.
+Alte Dateien, die NICHT in diesem ZIP enthalten sind, müssen im Repository gelöscht werden.
+Insbesondere löschen, falls vorhanden:
+- netlify/functions/chaos-hourly.mjs
+- netlify/functions/subscribe.mjs
+- alte .mjs-Dateien im Repository-Root
+- alte index.html im Repository-Root
+- vercel.json / api/ aus dem früheren Vercel-Versuch
+
+Der korrekte Build-Marker lautet: BOARD-V1.2-NETLIFY

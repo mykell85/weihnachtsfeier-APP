@@ -1,7 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-export const PLAYERS = ["Christian","Bene","Felix","Sven","Giovanni","Cornelius","Marco","Daniel","Michael"];
-export const PINS = {Christian:"2412",Bene:"7314",Felix:"5086",Sven:"1937",Giovanni:"8642",Cornelius:"4269",Marco:"3571",Daniel:"6805",Michael:"9128"};
+export const PLAYERS = ["Christian","Bene","Felix","Sven","Giovanni","Cornelius","Marco","Michael","Simon","Peter"];
+export const PINS = {Christian:"2412",Bene:"7314",Felix:"5086",Sven:"1937",Giovanni:"8642",Cornelius:"4269",Marco:"3571",Michael:"9128",Simon:"1974",Peter:"6248",Spielleiter:"2026"};
+export const AUTH_USERS = [...PLAYERS,"Spielleiter"];
 export const TEAM_ORDER = ["Rentiere","Glühwein","Lametta"];
 export const TEAM_ICONS = {Rentiere:"🦌",Glühwein:"🍷",Lametta:"✨"};
 export const BOARD_END = 33;
@@ -70,5 +71,5 @@ export const ADMIN_PIN = process.env.ADMIN_PIN || "2026";
 export const SESSION_SECRET = process.env.SESSION_SECRET || "mob-weihnachtsfeier-2026-change-me";
 const enc=o=>Buffer.from(JSON.stringify(o)).toString("base64url");
 export function makeToken(name){const p=enc({sub:name,exp:Date.now()+1000*60*60*48});const s=createHmac("sha256",SESSION_SECRET).update(p).digest("base64url");return `${p}.${s}`}
-export function verifyToken(token){if(!token||!token.includes("."))return null;const [p,s]=token.split(".");const e=createHmac("sha256",SESSION_SECRET).update(p).digest("base64url");const a=Buffer.from(s),b=Buffer.from(e);if(a.length!==b.length||!timingSafeEqual(a,b))return null;try{const d=JSON.parse(Buffer.from(p,"base64url").toString("utf8"));return d.sub&&d.exp>Date.now()&&PLAYERS.includes(d.sub)?d.sub:null}catch{return null}}
+export function verifyToken(token){if(!token||!token.includes("."))return null;const [p,s]=token.split(".");const e=createHmac("sha256",SESSION_SECRET).update(p).digest("base64url");const a=Buffer.from(s),b=Buffer.from(e);if(a.length!==b.length||!timingSafeEqual(a,b))return null;try{const d=JSON.parse(Buffer.from(p,"base64url").toString("utf8"));return d.sub&&d.exp>Date.now()&&AUTH_USERS.includes(d.sub)?d.sub:null}catch{return null}}
 export function authName(req){const h=typeof req.headers?.get==="function"?(req.headers.get("authorization")||""):(req.headers?.authorization||req.headers?.Authorization||"");return verifyToken(h.startsWith("Bearer ")?h.slice(7):"")}

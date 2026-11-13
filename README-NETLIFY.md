@@ -1,21 +1,14 @@
-# MOB-Weihnachtsfeier 2026 – Netlify Brettspiel v1.3
+# MOB-Weihnachtsfeier 2026 – Netlify Brettspiel v1.5
 
-- Login-Maske erscheint direkt.
-- Startseite mit Wichtel-Crew und Agenda ist wieder da.
-- Brettspiel ist ein eigener Menüpunkt.
-- Spielleiter-Testlogin: `Spielleiter` / `2026`.
-- Spielleiter darf unabhängig vom aktiven Team würfeln und Aktionen bestätigen.
-- Spieler: Christian, Bene, Felix, Sven, Giovanni, Cornelius, Marco, Michael, Simon, Peter.
-- Daniel ist entfernt.
-- Simon und Peter liegen unter `public/avatars/`.
+Vollständiges Projektpaket für Netlify.
 
-Beim GitHub-Upload bitte alte Legacy-Dateien löschen, insbesondere `chaos-hourly.mjs`, `subscribe.mjs`, alte Root-Functions und alte Root-`index.html`.
+## Neu in v1.5
+- Echter CSS-3D-Würfel mit sechs numerischen Seiten 1–6.
+- Sichtbare 3D-Rotation während des Wurfs.
+- Nach dem Server-Wurf landet der Würfel animiert exakt auf dem Ergebnis.
+- Alle Funktionen aus v1.4 bleiben enthalten: Login, Startseite, Crew, Agenda, Spielbrett, Spielleiter, Wichtelpost, Sounds, Shared State.
 
-Build-Marker: `/BUILD.txt` → `BOARD-V1.3-NETLIFY`.
+## Upload
+Das ZIP enthält die Repository-Dateien direkt auf oberster Ebene. Der Repo-Root soll danach `public/`, `netlify/`, `netlify.toml` und `package.json` enthalten.
 
-
-## v1.3 Fixes
-- Login ist ein echtes vorgeschaltetes Auth-Gate und kann nicht mehr vom Status-Polling geschlossen werden.
-- Login wird erst nach serverseitig bestätigter Session geschlossen.
-- Wichtel-Slider nutzt direkte Event-Listener für Pfeile, Dots und Swipe.
-- Portrait- und Namenspositionen im Crew-Panel wurden neu ausgerichtet.
+Build-Marker: `/BUILD.txt` → `BOARD-V1.5-NETLIFY`

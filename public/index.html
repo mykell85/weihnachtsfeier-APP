@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#071a2c">
 <title>MOB-Weihnachtsfeier 2026</title>
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="stylesheet" href="/styles.css?v=board14">
+<link rel="stylesheet" href="/styles.css?v=board15">
 </head>
 <body>
 <div id="app" class="app">
@@ -55,7 +55,20 @@
         </div>
         <div class="finish-sign">🏁 ZIEL</div><div class="start-sign">START</div>
         <section class="turn-card"><small>Am Zug</small><strong id="turnLabel">–</strong><span id="turnHint">Bitte anmelden</span></section>
-        <section class="dice-dock"><div id="dice" class="dice" aria-live="polite"><span id="diceFace">❄️</span></div><button id="rollBtn" class="roll-btn" type="button" disabled>WÜRFELN</button></section>
+        <section class="dice-dock">
+          <div class="dice-scene" aria-live="polite" aria-label="Weihnachtswürfel">
+            <div id="dice" class="dice-cube" data-value="1">
+              <div class="dice-side dice-front"><span>1</span></div>
+              <div class="dice-side dice-back"><span>6</span></div>
+              <div class="dice-side dice-right"><span>3</span></div>
+              <div class="dice-side dice-left"><span>4</span></div>
+              <div class="dice-side dice-top"><span>2</span></div>
+              <div class="dice-side dice-bottom"><span>5</span></div>
+            </div>
+          </div>
+          <div id="diceResult" class="dice-result">Bereit zum Würfeln</div>
+          <button id="rollBtn" class="roll-btn" type="button" disabled>WÜRFELN</button>
+        </section>
         <div class="legend"><span class="legend-item mission">🎁 Mission</span><span class="legend-item secret">✉️ Wichtelpost</span><span class="legend-item chaos">🃏 Chaos</span><span class="legend-item song">🎵 Lieder-Rad</span></div>
       </section>
     </section>
@@ -125,10 +138,10 @@
   <p>Setzt Teams, Positionen, Punkte, gezogene Aufgaben und Wichtelpost zurück. Die letzte Partie wird nur für die Anti-Wiederholungslogik gemerkt.</p>
   <label>Admin-Code<input id="adminPin" inputmode="numeric" maxlength="6" placeholder="2026"></label>
   <button id="resetBtn" class="danger">Komplette Partie zurücksetzen</button>
-  <p class="build">Build: BOARD-V1.4-NETLIFY</p>
+  <p class="build">Build: BOARD-V1.5-NETLIFY</p>
  </div>
 </div>
 
-<script type="module" src="/app.js?v=board14"></script>
+<script type="module" src="/app.js?v=board15"></script>
 </body>
 </html>

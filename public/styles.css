@@ -131,3 +131,28 @@ button:disabled{cursor:not-allowed}
   .turn-card{width:34%}
   .bottom-nav.cosy-nav .nav-btn span{font-size:9px}
 }
+
+/* === V1.5 echter 3D-Würfel === */
+.dice-dock{perspective:900px}
+.dice-scene{width:clamp(62px,16vw,112px);height:clamp(62px,16vw,112px);display:grid;place-items:center;perspective:700px;filter:drop-shadow(0 12px 12px rgba(0,0,0,.38))}
+.dice-cube{--cube:clamp(54px,14vw,96px);position:relative;width:var(--cube);height:var(--cube);transform-style:preserve-3d;transform:rotateX(0deg) rotateY(0deg);transition:transform .72s cubic-bezier(.18,.8,.22,1.08);will-change:transform}
+.dice-side{position:absolute;inset:0;display:grid;place-items:center;border-radius:14%;background:linear-gradient(145deg,#fff9e7 0%,#f4dfad 54%,#d6a850 100%);border:3px solid #8a5317;box-shadow:inset 0 0 0 3px rgba(255,255,255,.42),inset -9px -10px 16px rgba(117,67,12,.14),0 0 13px rgba(255,205,93,.22);backface-visibility:hidden}
+.dice-side span{font:900 clamp(27px,7vw,48px)/1 system-ui;color:#7a1b14;text-shadow:0 2px 0 #fff4c6,0 4px 8px rgba(83,35,4,.15)}
+.dice-front{transform:rotateY(0deg) translateZ(calc(var(--cube)/2))}
+.dice-back{transform:rotateY(180deg) translateZ(calc(var(--cube)/2))}
+.dice-right{transform:rotateY(90deg) translateZ(calc(var(--cube)/2))}
+.dice-left{transform:rotateY(-90deg) translateZ(calc(var(--cube)/2))}
+.dice-top{transform:rotateX(90deg) translateZ(calc(var(--cube)/2))}
+.dice-bottom{transform:rotateX(-90deg) translateZ(calc(var(--cube)/2))}
+.dice-cube.rolling{transition:none;animation:realDiceSpin 1.5s cubic-bezier(.16,.72,.2,1) both}
+@keyframes realDiceSpin{
+  0%{transform:rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1)}
+  20%{transform:rotateX(230deg) rotateY(170deg) rotateZ(35deg) scale(1.06)}
+  45%{transform:rotateX(520deg) rotateY(410deg) rotateZ(-30deg) scale(1.1)}
+  70%{transform:rotateX(790deg) rotateY(680deg) rotateZ(22deg) scale(1.05)}
+  100%{transform:rotateX(1080deg) rotateY(900deg) rotateZ(0deg) scale(1)}
+}
+.dice-cube.landed{animation:diceLand .42s ease-out}
+@keyframes diceLand{0%{scale:1}45%{scale:1.09}75%{scale:.97}100%{scale:1}}
+.dice-result{margin-top:.45rem;min-height:1.1em;color:#ffe8b3;font:800 clamp(9px,2.2vw,13px)/1.2 system-ui;text-shadow:0 2px 5px rgba(0,0,0,.7);letter-spacing:.02em}
+@media(prefers-reduced-motion:reduce){.dice-cube.rolling{animation-duration:.25s}.dice-cube{transition-duration:.15s}}

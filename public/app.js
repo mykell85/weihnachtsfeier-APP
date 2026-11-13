@@ -15,7 +15,7 @@ const POS=[null,
 [28,39.5],[42,38.1],[55,39.0],[68,36.4],
 [67,31.0],[54,29.4],[41,30.5],[30,27.1],[70,20.5]
 ];
-const DICE_FACES={1:"⭐",2:"🔔🔔",3:"🍬³",4:"❄️⁴",5:"🎁⁵",6:"🕯️⁶"};
+const DICE_FACES={1:1,2:2,3:3,4:4,5:5,6:6};
 
 let token=localStorage.getItem('mobToken')||'';
 let state=null,mail=[],pollTimer=null,seenMoveId=null,animating=false,authValidated=false;
@@ -96,6 +96,15 @@ function placeToken(team,field,instant=false){const el=$('#token'+TEAM_KEYS[team
 function lightField(n){$$('.field').forEach(f=>f.classList.remove('lit')); const f=$(`.field[data-field="${n}"]`); if(f){void f.offsetWidth; f.classList.add('lit')}}
 async function animateMove(move){ if(!move||animating) return; animating=true; const team=move.team; placeToken(team,move.from,true); await wait(260); for(let f=move.from+1; f<=move.to; f++){ const el=$('#token'+TEAM_KEYS[team]); el.classList.remove('step'); void el.offsetWidth; el.classList.add('step'); placeToken(team,f); playMove(f); await wait(430) } lightField(move.to); playSuccess(); await wait(280); animating=false }
 
+function showDiceValue(value,animate=true){
+ const die=$('#dice'), result=$('#diceResult'); if(!die)return; const v=Number(value)||1;
+ const rotations={1:[0,0],2:[-90,0],3:[0,-90],4:[0,90],5:[90,0],6:[0,180]};
+ const [rx,ry]=rotations[v]; die.dataset.value=String(v); die.classList.remove('rolling','landed');
+ if(!animate){die.style.transition='none';die.style.transform=`rotateX(${rx}deg) rotateY(${ry}deg)`;requestAnimationFrame(()=>die.style.transition='')}
+ else {die.style.transform=`rotateX(${rx}deg) rotateY(${ry}deg)`;void die.offsetWidth;die.classList.add('landed')}
+ if(result)result.textContent=`Gewürfelt: ${v}`;
+}
+
 function render(){ if(!state) return;
  $('#scoreR').textContent=(state.scores?.Rentiere||0)+' P'; $('#scoreG').textContent=(state.scores?.Glühwein||0)+' P'; $('#scoreL').textContent=(state.scores?.Lametta||0)+' P';
  for(const t of Object.keys(TEAM_ICONS)) placeToken(t,state.positions?.[t]||1,true);
@@ -129,8 +138,19 @@ function showPending(p){
 function btn(label,cls,fn,disabled=false){const b=document.createElement('button'); b.textContent=label; b.className=cls; b.disabled=disabled; b.onclick=async()=>{playClick(); b.classList.add('pressed'); try{ await fn() } finally { setTimeout(()=>b.classList.remove('pressed'),150) }}; return b}
 async function doResolve(success){try{const d=await api('/api/action',{method:'POST',body:JSON.stringify({action:'resolve',success})}); state=d.state; if(success) playSuccess(); render(); await refresh()}catch(e){playError(); toast(e.message)}}
 async function doAction(action,extra={}){try{const d=await api('/api/action',{method:'POST',body:JSON.stringify({action,...extra})}); state=d.state; render(); return d}catch(e){playError(); toast(e.message); throw e}}
-async function roll(){ if($('#rollBtn').disabled) return; playRoll(); const die=$('#dice'),face=$('#diceFace'); die.classList.add('rolling'); $('#rollBtn').disabled=true; const glyphs=Object.values(DICE_FACES); let t=setInterval(()=>face.textContent=glyphs[Math.floor(Math.random()*glyphs.length)],100);
- try{ const [d]=await Promise.all([api('/api/action',{method:'POST',body:JSON.stringify({action:'roll'})}),wait(1200)]); clearInterval(t); die.classList.remove('rolling'); state=d.state; face.textContent=DICE_FACES[state.lastMove.roll]||'❄️'; const move=state.lastMove; if(move&&move.id!==seenMoveId){seenMoveId=move.id; await animateMove(move)} await wait(state.pending?560:220); render(); await refresh() } catch(e){ clearInterval(t); die.classList.remove('rolling'); playError(); toast(e.message); render() }}
+async function roll(){
+ if($('#rollBtn').disabled) return;
+ playRoll(); const die=$('#dice'),result=$('#diceResult'),btn=$('#rollBtn'); btn.disabled=true;
+ if(result)result.textContent='Der Würfel rollt …'; die.classList.remove('landed'); die.style.transition='none'; die.style.transform=''; die.classList.add('rolling');
+ try{
+   const [d]=await Promise.all([api('/api/action',{method:'POST',body:JSON.stringify({action:'roll'})}),wait(1500)]);
+   state=d.state; const value=state.lastMove.roll; die.classList.remove('rolling');
+   requestAnimationFrame(()=>{die.style.transition='transform .72s cubic-bezier(.18,.8,.22,1.08)';showDiceValue(value,true)});
+   await wait(760);
+   const move=state.lastMove; if(move&&move.id!==seenMoveId){seenMoveId=move.id;await animateMove(move)}
+   await wait(state.pending?700:260); render(); await refresh();
+ }catch(e){die.classList.remove('rolling');playError();if(result)result.textContent='Bitte noch einmal versuchen';toast(e.message);render()}
+}
 
 async function refresh(){ if(!token){ lockAuth(); return }
  try{ const d=await api('/api/status'); const newState=d.state,newMail=d.mail||[],move=newState.lastMove;
@@ -158,4 +178,4 @@ $$('.nav-btn').forEach(b=>b.onclick=()=>{playClick(); const n=b.dataset.nav; if(
 document.addEventListener('click',e=>{if(e.target.closest('button') && !e.target.closest('#rollBtn') && !e.target.closest('#openRankBtn')){ /* small general click already handled in most places */ }});
 document.addEventListener('keydown',e=>{if(e.key==='Escape') ['mailModal','rankModal','settingsModal','eventModal'].forEach(id=>closeModal(id))});
 
-buildBoard(); preloadAvatars(); renderCrew(); showPage('home'); lockAuth(); if(token) refresh(); pollTimer=setInterval(()=>{ if(token && !animating) refresh() },2600); if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+buildBoard(); showDiceValue(1,false); preloadAvatars(); renderCrew(); showPage('home'); lockAuth(); if(token) refresh(); pollTimer=setInterval(()=>{ if(token && !animating) refresh() },2600); if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});

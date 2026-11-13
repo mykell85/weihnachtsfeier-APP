@@ -7,7 +7,7 @@ export const TEAM_ORDER = ["Rentiere","Glühwein","Lametta"];
 export const TEAM_ICONS = {Rentiere:"🦌",Glühwein:"🍷",Lametta:"✨"};
 export const BOARD_END = 33;
 export const FIELD_TYPES = {
-  1:"start",2:"free",3:"mission",4:"free",5:"song",6:"free",7:"chaos",8:"free",9:"secret",10:"free",11:"mission",12:"free",13:"chaos",14:"free",15:"song",16:"mission",17:"free",18:"secret",19:"free",20:"mission",21:"chaos",22:"free",23:"secret",24:"free",25:"mission",26:"song",27:"free",28:"chaos",29:"free",30:"secret",31:"mission",32:"free",33:"finish"
+  1:"start",2:"free",3:"mission",4:"free",5:"song",6:"free",7:"free",8:"free",9:"secret",10:"free",11:"mission",12:"free",13:"chaos",14:"free",15:"song",16:"free",17:"free",18:"mission",19:"free",20:"secret",21:"free",22:"free",23:"mission",24:"free",25:"chaos",26:"free",27:"song",28:"free",29:"secret",30:"free",31:"mission",32:"free",33:"finish"
 };
 export const MISSIONS = [
 {id:"m01",icon:"☎️",type:"solo",title:"Nordpol-Hotline",desc:"Ruf den Weihnachtsmann unter 0351-4882412 an und hinterlasse einen Weihnachtswunsch.",points:3},

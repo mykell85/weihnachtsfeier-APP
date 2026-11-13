@@ -1,13 +1,5 @@
-import { authName, VAPID_PUBLIC_KEY } from "./_lib/config.mjs";
-import { getState, sanitizeState, teamOf } from "./_lib/game.mjs";
-export default async (req) => {
-  const name=authName(req);
-  if(!name) return Response.json({error:"Nicht angemeldet"},{status:401});
-  const state=await getState();
-  return Response.json({
-    ok:true,
-    me:{name,team:teamOf(state,name)},
-    state:sanitizeState(state),
-    vapidPublicKey:VAPID_PUBLIC_KEY
-  });
-};
+import { authName } from "./_lib/config.mjs";
+import { storage,mailKey } from "./_lib/store.mjs";
+import { getState,publicState } from "./_lib/game.mjs";
+import { reply,errMessage } from "./_lib/http.mjs";
+export default async (req)=>{if(req.method!=="GET")return reply(405,{error:"METHOD"});try{const r=storage();const name=authName(req);const s=await getState(r);const mail=name?(await r.get(mailKey(name))||[]):[];return reply(200,{state:publicState(s,name),mail})}catch(e){return reply(500,{error:errMessage(e)})}}

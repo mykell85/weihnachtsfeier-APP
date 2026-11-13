@@ -1,37 +1,5 @@
-import { authName, ADMIN_PIN } from "./_lib/config.mjs";
-import { getState, saveState, sanitizeState, drawTeamsInto, drawMissionInto, redrawMissionInto, finishMissionInto, applySongPoints, resetEverything } from "./_lib/game.mjs";
-export default async (req) => {
-  const name=authName(req);
-  if(!name) return Response.json({error:"Nicht angemeldet"},{status:401});
-  if(req.method!=="POST") return new Response("Method Not Allowed",{status:405});
-  let body={}; try{body=await req.json()}catch{}
-  const type=body.action;
-  let state=await getState();
-  let meta={};
-  if(type==="drawTeams"){
-    state=drawTeamsInto(state);
-  }else if(type==="drawMission"){
-    state=drawMissionInto(state);
-  }else if(type==="redrawMission"){
-    state=redrawMissionInto(state);
-  }else if(type==="finishMission"){
-    state=finishMissionInto(state,!!body.success);
-  }else if(type==="awardSong"){
-    const r=applySongPoints(state,name); state=r.state; meta={awarded:r.awarded,team:r.team};
-  }else if(type==="startChaos"){
-    if(!state.teams) return Response.json({error:"Erst Teams auslosen."},{status:400});
-    state.chaos.active=true;
-  }else if(type==="stopChaos"){
-    state.chaos.active=false;
-  }else if(type==="resetMissions"){
-    state.turnIndex=0;
-    state.mission={used:[],active:null,history:[]};
-  }else if(type==="adminReset"){
-    if(String(body.adminPin||"")!==ADMIN_PIN) return Response.json({error:"Admin-Code falsch."},{status:403});
-    state=await resetEverything();
-  }else{
-    return Response.json({error:"Unbekannte Aktion"},{status:400});
-  }
-  await saveState(state);
-  return Response.json({ok:true,state:sanitizeState(state),...meta});
-};
+import { authName,ADMIN_PIN } from "./_lib/config.mjs";
+import { withLock } from "./_lib/store.mjs";
+import { getState,saveState,publicState,startGame,rollInto,resolvePending,redrawMission,archiveAndReset } from "./_lib/game.mjs";
+import { reply,body,errMessage } from "./_lib/http.mjs";
+export default async (req)=>{if(req.method!=="POST")return reply(405,{error:"METHOD"});const name=authName(req);if(!name)return reply(401,{error:"Bitte neu anmelden."});const b=await body(req);try{const result=await withLock(async r=>{let s=await getState(r);if(b.action==="start_game"){if(!s.started)s=await startGame(r,s);return s}if(b.action==="roll")s=await rollInto(r,s,name);else if(b.action==="resolve")({s}=resolvePending(s,name,!!b.success));else if(b.action==="redraw")s=await redrawMission(r,s,name);else if(b.action==="reset_game"){if(String(b.adminPin||"")!==ADMIN_PIN)throw new Error("ADMIN_PIN");return await archiveAndReset(r,s)}else throw new Error("UNKNOWN_ACTION");await saveState(r,s);return s});return reply(200,{state:publicState(result,name)})}catch(e){return reply(e.message==="ADMIN_PIN"?403:409,{error:e.message==="ADMIN_PIN"?"Admin-Code stimmt nicht.":errMessage(e)})}}

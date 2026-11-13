@@ -1,223 +1,62 @@
-import { createHash } from "node:crypto";
-import { getStore } from "@netlify/blobs";
-import { PLAYERS, TEAM_ORDER, TEAM_ICONS, MISSIONS, SECRET_MISSIONS, CHAOS_CARDS } from "./config.mjs";
+import { randomInt, randomUUID } from "node:crypto";
+import { PLAYERS,TEAM_ORDER,TEAM_ICONS,BOARD_END,FIELD_TYPES,MISSIONS,SECRET_MISSIONS,CHAOS_CARDS,SONGS } from "./config.mjs";
+import { STATE_KEY,LAST_KEY,mailKey } from "./store.mjs";
 
-const GAME_STORE="mob-xmas-game";
-const PRIVATE_STORE="mob-xmas-private";
-
-export function gameStore(){ return getStore({name:GAME_STORE, consistency:"strong"}); }
-export function privateStore(){ return getStore({name:PRIVATE_STORE, consistency:"strong"}); }
-
-export function shuffle(list){
-  const a=[...list];
-  for(let i=a.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [a[i],a[j]]=[a[j],a[i]];
-  }
-  return a;
+export const initialState=()=>({version:2,started:false,gameId:null,teams:null,scores:{Rentiere:0,Glühwein:0,Lametta:0},positions:{Rentiere:1,Glühwein:1,Lametta:1},turnIndex:0,pending:null,lastMove:null,moveCounter:0,used:{mission:[],secret:[],chaos:[],song:[]},drawOrder:{mission:[],secret:[],chaos:[],song:[]},modifiers:{nextMissionMultiplier:1,nextMissionBonus:0,nextSongMultiplier:1,redrawAvailable:false},history:[],final:{triggered:false,starter:null,remaining:[],complete:false,winners:[]}});
+export async function getState(r){let s=await r.get(STATE_KEY);if(!s){s=initialState();await r.set(STATE_KEY,s)}return normalize(s)}
+export async function saveState(r,s){await r.set(STATE_KEY,s);return s}
+function normalize(s){s.positions||={Rentiere:1,Glühwein:1,Lametta:1};s.used||={mission:[],secret:[],chaos:[],song:[]};s.drawOrder||={mission:[],secret:[],chaos:[],song:[]};s.modifiers||={nextMissionMultiplier:1,nextMissionBonus:0,nextSongMultiplier:1,redrawAvailable:false};s.final||={triggered:false,starter:null,remaining:[],complete:false,winners:[]};return s}
+export function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=randomInt(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+export function teamOf(s,name){return s.teams?TEAM_ORDER.find(t=>(s.teams[t]||[]).includes(name))||null:null}
+export function currentTeam(s){return TEAM_ORDER[s.turnIndex%TEAM_ORDER.length]}
+export function publicState(s,player=null){return {...s,me:player?{name:player,team:teamOf(s,player)}:null,board:{end:BOARD_END,fields:FIELD_TYPES},teamIcons:TEAM_ICONS}}
+export async function startGame(r,s){
+  const people=shuffle(PLAYERS),teams={Rentiere:[],Glühwein:[],Lametta:[]};people.forEach((p,i)=>teams[TEAM_ORDER[i%3]].push(p));
+  const fresh=initialState();fresh.started=true;fresh.gameId=randomUUID();fresh.teams=teams;
+  await r.set(STATE_KEY,fresh);return fresh;
 }
-export function initialState(){
-  return {
-    version:1,
-    teams:null,
-    scores:{Rentiere:0,Glühwein:0,Lametta:0},
-    turnIndex:0,
-    mission:{used:[],active:null,history:[]},
-    chaos:{
-      active:false, used:[], current:null, history:[],
-      nextMissionMultiplier:1, nextMissionBonus:0, nextSongMultiplier:1,
-      redrawAvailable:false
-    }
-  };
+function poolFor(type){return type==="mission"?MISSIONS:type==="secret"?SECRET_MISSIONS:type==="chaos"?CHAOS_CARDS:SONGS}
+async function drawRandom(r,s,type){
+  const full=poolFor(type); let pool=full.filter(x=>!s.used[type].includes(x.id));
+  if(!pool.length){const recent=s.drawOrder[type].slice(-Math.min(5,full.length-1));s.used[type]=[];pool=full.filter(x=>!recent.includes(x.id));if(!pool.length)pool=[...full]}
+  const previous=await r.get(LAST_KEY)||{};
+  if(s.drawOrder[type].length===0 && previous.first?.[type] && pool.length>1){const filtered=pool.filter(x=>x.id!==previous.first[type]);if(filtered.length)pool=filtered}
+  const item=pool[randomInt(pool.length)];
+  s.used[type].push(item.id);s.drawOrder[type].push(item.id);return item;
 }
-export async function getState(){
-  const store=gameStore();
-  let s=await store.get("state",{type:"json"});
-  if(!s){ s=initialState(); await store.setJSON("state",s); }
-  s.scores ||= {Rentiere:0,Glühwein:0,Lametta:0};
-  s.mission ||= {used:[],active:null,history:[]};
-  s.chaos ||= {active:false,used:[],current:null,history:[],nextMissionMultiplier:1,nextMissionBonus:0,nextSongMultiplier:1,redrawAvailable:false};
-  // Migration für alte Testdaten: Simon wurde in der finalen Spielerliste durch Sven ersetzt.
-  let migrated=false;
-  if(s.teams){
-    for(const team of TEAM_ORDER){
-      s.teams[team]=(s.teams[team]||[]).map(name=>name==="Simon"?(migrated=true,"Sven"):name);
-    }
-  }
-  if(s.mission.active?.performer==="Simon"){s.mission.active.performer="Sven";migrated=true;}
-  for(const h of (s.mission.history||[])){if(h.performer==="Simon"){h.performer="Sven";migrated=true;}}
-  if(migrated) await store.setJSON("state",s);
+function addHistory(s,e){s.history.unshift({at:new Date().toISOString(),...e});s.history=s.history.slice(0,120)}
+function applyChaos(s,card){let effect=card.text,changes=[];const teams=s.teams;
+  if(card.type==="swap_two") {const [a,b]=shuffle(TEAM_ORDER).slice(0,2);const ia=randomInt(teams[a].length),ib=randomInt(teams[b].length);const pa=teams[a][ia],pb=teams[b][ib];teams[a][ia]=pb;teams[b][ib]=pa;changes=[{player:pa,from:a,to:b},{player:pb,from:b,to:a}];effect=`${pa}: ${a} → ${b} · ${pb}: ${b} → ${a}`}
+  else if(card.type==="rotate_three"){const picks=TEAM_ORDER.map(t=>({t,i:randomInt(teams[t].length)}));const vals=picks.map(x=>teams[x.t][x.i]);picks.forEach((x,i)=>teams[x.t][x.i]=vals[(i+2)%3]);changes=vals.map((p,i)=>({player:p,from:TEAM_ORDER[i],to:TEAM_ORDER[(i+1)%3]}));effect=changes.map(x=>`${x.player}: ${x.from} → ${x.to}`).join(" · ")}
+  else if(card.type==="all_bonus"){TEAM_ORDER.forEach(t=>s.scores[t]+=2);effect="Jedes Team erhält +2 Punkte."}
+  else if(card.type==="leader_tax"){const m=Math.max(...TEAM_ORDER.map(t=>s.scores[t]));const a=TEAM_ORDER.filter(t=>s.scores[t]===m);const t=a[randomInt(a.length)];s.scores[t]=Math.max(0,s.scores[t]-2);effect=`${t} verliert 2 Punkte.`}
+  else if(card.type==="underdog_bonus"){const m=Math.min(...TEAM_ORDER.map(t=>s.scores[t]));const a=TEAM_ORDER.filter(t=>s.scores[t]===m);const t=a[randomInt(a.length)];s.scores[t]+=3;effect=`${t} erhält +3 Punkte.`}
+  else if(card.type==="next_double"){s.modifiers.nextMissionMultiplier=2}
+  else if(card.type==="next_bonus"){s.modifiers.nextMissionBonus=2}
+  else if(card.type==="song_double"){s.modifiers.nextSongMultiplier=2}
+  else if(card.type==="redraw"){s.modifiers.redrawAvailable=true}
+  return {effect,changes};
+}
+function maybeTriggerFinal(s,team){if(!s.final.triggered && s.positions[team]>=BOARD_END){s.final.triggered=true;s.final.starter=team;s.final.remaining=TEAM_ORDER.filter(t=>t!==team)}}
+function finishIfDone(s){if(s.final.triggered && s.final.remaining.length===0){s.final.complete=true;const max=Math.max(...TEAM_ORDER.map(t=>s.scores[t]));s.final.winners=TEAM_ORDER.filter(t=>s.scores[t]===max)}}
+function endTurn(s,team){if(s.final.triggered && team!==s.final.starter){s.final.remaining=s.final.remaining.filter(t=>t!==team)}finishIfDone(s);if(!s.final.complete)s.turnIndex=(s.turnIndex+1)%3}
+export async function rollInto(r,s,player){
+  if(!s.started)throw new Error("NOT_STARTED");if(s.final.complete)throw new Error("GAME_OVER");if(s.pending)throw new Error("PENDING");const team=currentTeam(s);if(teamOf(s,player)!==team)throw new Error("NOT_YOUR_TURN");
+  const roll=randomInt(1,7),from=s.positions[team],to=Math.min(BOARD_END,from+roll);s.positions[team]=to;s.moveCounter++;s.lastMove={id:s.moveCounter,team,roll,from,to,at:new Date().toISOString()};maybeTriggerFinal(s,team);const kind=FIELD_TYPES[to]||"free";
+  if(kind==="mission"){const m=await drawRandom(r,s,"mission");const members=s.teams[team]||[];const performer=m.type==="solo"?members[randomInt(members.length)]:null;s.pending={id:randomUUID(),kind:"mission",team,item:m,performer,field:to}}
+  else if(kind==="song"){const song=await drawRandom(r,s,"song");s.pending={id:randomUUID(),kind:"song",team,item:song,field:to}}
+  else if(kind==="chaos"){const card=await drawRandom(r,s,"chaos");const applied=applyChaos(s,card);s.pending={id:randomUUID(),kind:"chaos",team,item:card,effect:applied.effect,changes:applied.changes,field:to}}
+  else if(kind==="secret"){const secret=await drawRandom(r,s,"secret");const members=s.teams[team]||[];const recipient=members[randomInt(members.length)];const key=mailKey(recipient);const mail=(await r.get(key))||[];mail.unshift({assignmentId:randomUUID(),missionId:secret.id,title:secret.title,desc:secret.desc,done:false,assignedAt:new Date().toISOString()});await r.set(key,mail);s.pending={id:randomUUID(),kind:"secret",team,recipient,field:to}}
+  else {addHistory(s,{type:"move",team,roll,field:to});endTurn(s,team)}
   return s;
 }
-export async function saveState(s){
-  await gameStore().setJSON("state",s);
-  return s;
+export async function redrawMission(r,s,player){if(!s.pending||s.pending.kind!=="mission"||!s.modifiers.redrawAvailable)throw new Error("NO_REDRAW");if(teamOf(s,player)!==s.pending.team)throw new Error("NOT_YOUR_TURN");const old=s.pending.item.id;let pool=MISSIONS.filter(m=>!s.used.mission.includes(m.id)&&m.id!==old);if(!pool.length)pool=MISSIONS.filter(m=>m.id!==old);const m=pool[randomInt(pool.length)];if(!s.used.mission.includes(m.id))s.used.mission.push(m.id);s.drawOrder.mission.push(m.id);const members=s.teams[s.pending.team]||[];s.pending.item=m;s.pending.performer=m.type==="solo"?members[randomInt(members.length)]:null;s.modifiers.redrawAvailable=false;return s}
+export function resolvePending(s,player,success){if(!s.pending)throw new Error("NO_PENDING");const p=s.pending,team=p.team;if((p.kind==="mission"||p.kind==="song")&&teamOf(s,player)!==team)throw new Error("NOT_YOUR_TURN");let awarded=0;
+  if(p.kind==="mission"){if(success){awarded=p.item.points*(s.modifiers.nextMissionMultiplier||1)+(s.modifiers.nextMissionBonus||0);s.scores[team]+=awarded}s.modifiers.nextMissionMultiplier=1;s.modifiers.nextMissionBonus=0;s.modifiers.redrawAvailable=false;addHistory(s,{type:"mission",team,title:p.item.title,success:!!success,points:awarded})}
+  else if(p.kind==="song"){if(success){awarded=3*(s.modifiers.nextSongMultiplier||1);s.scores[team]+=awarded}s.modifiers.nextSongMultiplier=1;addHistory(s,{type:"song",team,title:p.item.title,success:!!success,points:awarded})}
+  else if(p.kind==="chaos")addHistory(s,{type:"chaos",team,title:p.item.title,effect:p.effect});
+  else if(p.kind==="secret")addHistory(s,{type:"secret",team,recipient:p.recipient});
+  s.pending=null;endTurn(s,team);return {s,awarded}
 }
-export function teamOf(state,name){
-  if(!state.teams) return null;
-  return TEAM_ORDER.find(t => (state.teams[t]||[]).includes(name)) || null;
-}
-export function sanitizeState(s){
-  return {
-    teams:s.teams,
-    scores:s.scores,
-    turnIndex:s.turnIndex,
-    mission:s.mission,
-    chaos:s.chaos,
-    missionTotal:MISSIONS.length
-  };
-}
-export function drawTeamsInto(state){
-  const people=shuffle(PLAYERS);
-  const teams={Rentiere:[],Glühwein:[],Lametta:[]};
-  people.forEach((p,i)=>teams[TEAM_ORDER[i%TEAM_ORDER.length]].push(p));
-  state.teams=teams;
-  state.scores={Rentiere:0,Glühwein:0,Lametta:0};
-  state.turnIndex=0;
-  state.mission={used:[],active:null,history:[]};
-  state.chaos={active:false,used:[],current:null,history:[],nextMissionMultiplier:1,nextMissionBonus:0,nextSongMultiplier:1,redrawAvailable:false};
-  return state;
-}
-export function drawMissionInto(state){
-  if(!state.teams || state.mission.active) return state;
-  const pool=MISSIONS.filter(m=>!state.mission.used.includes(m.id));
-  if(!pool.length) return state;
-  const m=pool[Math.floor(Math.random()*pool.length)];
-  const team=TEAM_ORDER[state.turnIndex%TEAM_ORDER.length];
-  const members=state.teams[team]||[];
-  const performer=m.type==="solo" ? members[Math.floor(Math.random()*members.length)] : null;
-  state.mission.active={...m,team,performer,drawnAt:new Date().toISOString()};
-  return state;
-}
-export function redrawMissionInto(state){
-  if(!state.mission.active || !state.chaos.redrawAvailable) return state;
-  if(!state.mission.used.includes(state.mission.active.id)) state.mission.used.push(state.mission.active.id);
-  state.mission.active=null;
-  state.chaos.redrawAvailable=false;
-  return drawMissionInto(state);
-}
-export function finishMissionInto(state,success){
-  const a=state.mission.active;
-  if(!a) return state;
-  let awarded=0;
-  if(success){
-    awarded=(a.points*(state.chaos.nextMissionMultiplier||1))+(state.chaos.nextMissionBonus||0);
-    state.scores[a.team]=(state.scores[a.team]||0)+awarded;
-  }
-  if(!state.mission.used.includes(a.id)) state.mission.used.push(a.id);
-  state.mission.history.unshift({...a,success:!!success,awarded,finishedAt:new Date().toISOString()});
-  state.mission.active=null;
-  state.turnIndex=(state.turnIndex+1)%TEAM_ORDER.length;
-  state.chaos.nextMissionMultiplier=1;
-  state.chaos.nextMissionBonus=0;
-  state.chaos.redrawAvailable=false;
-  return state;
-}
-export function applySongPoints(state,player){
-  const team=teamOf(state,player);
-  if(!team) return {state,awarded:0,team:null};
-  const awarded=3*(state.chaos.nextSongMultiplier||1);
-  state.scores[team]=(state.scores[team]||0)+awarded;
-  state.chaos.nextSongMultiplier=1;
-  return {state,awarded,team};
-}
-export function applyChaosCard(state,card){
-  let effect="";
-  let changes=[];
-  const teams=state.teams;
-  if(!teams) return {state,effect:"Noch keine Teams ausgelost.",changes};
-  if(card.type==="swap_two"){
-    const pair=shuffle(TEAM_ORDER).slice(0,2);
-    const [a,b]=pair;
-    const ia=Math.floor(Math.random()*teams[a].length), ib=Math.floor(Math.random()*teams[b].length);
-    const pa=teams[a][ia], pb=teams[b][ib];
-    teams[a][ia]=pb; teams[b][ib]=pa;
-    changes=[{player:pa,from:a,to:b},{player:pb,from:b,to:a}];
-    effect=`${pa} wechselt von ${a} zu ${b}; ${pb} wechselt von ${b} zu ${a}.`;
-  } else if(card.type==="rotate_three"){
-    const picks=TEAM_ORDER.map(t=>({t,i:Math.floor(Math.random()*teams[t].length)}));
-    const vals=picks.map(x=>teams[x.t][x.i]);
-    picks.forEach((x,i)=>{teams[x.t][x.i]=vals[(i+2)%vals.length]});
-    changes=picks.map((x,i)=>({player:vals[i],from:x.t,to:picks[(i+1)%picks.length].t}));
-    effect=changes.map(x=>`${x.player}: ${x.from} → ${x.to}`).join(" · ");
-  } else if(card.type==="all_bonus"){
-    TEAM_ORDER.forEach(t=>state.scores[t]=(state.scores[t]||0)+2);
-    changes=TEAM_ORDER.map(t=>({team:t,points:+2}));
-    effect="Jedes Team erhält +2 Punkte.";
-  } else if(card.type==="leader_tax"){
-    const max=Math.max(...TEAM_ORDER.map(t=>state.scores[t]||0));
-    const leaders=TEAM_ORDER.filter(t=>(state.scores[t]||0)===max);
-    const t=leaders[Math.floor(Math.random()*leaders.length)];
-    state.scores[t]=Math.max(0,(state.scores[t]||0)-2);
-    changes=[{team:t,points:-2}];
-    effect=`Team ${t} verliert 2 Punkte.`;
-  } else if(card.type==="underdog_bonus"){
-    const min=Math.min(...TEAM_ORDER.map(t=>state.scores[t]||0));
-    const lows=TEAM_ORDER.filter(t=>(state.scores[t]||0)===min);
-    const t=lows[Math.floor(Math.random()*lows.length)];
-    state.scores[t]=(state.scores[t]||0)+3;
-    changes=[{team:t,points:+3}];
-    effect=`Team ${t} erhält +3 Punkte.`;
-  } else if(card.type==="next_double"){
-    state.chaos.nextMissionMultiplier=2; effect="Die nächste erfolgreiche Mission zählt doppelt.";
-  } else if(card.type==="next_bonus"){
-    state.chaos.nextMissionBonus=2; effect="Die nächste erfolgreiche Mission erhält +2 Bonuspunkte.";
-  } else if(card.type==="song_double"){
-    state.chaos.nextSongMultiplier=2; effect="Der nächste Lied-Erfolg zählt doppelt.";
-  } else if(card.type==="redraw"){
-    state.chaos.redrawAvailable=true; effect="Das nächste Team darf einmal neu ziehen.";
-  } else {
-    effect=card.text;
-  }
-  return {state,effect,changes};
-}
-export function nextChaosCard(state){
-  const pool=CHAOS_CARDS.filter(c=>!state.chaos.used.includes(c.id));
-  if(!pool.length) return null;
-  return pool[Math.floor(Math.random()*pool.length)];
-}
-export async function ensureSecretMission(player){
-  const store=privateStore();
-  let data=await store.get("mail",{type:"json"}) || {used:[],assignments:{}};
-  if(!data.assignments[player]){
-    let pool=SECRET_MISSIONS.filter(m=>!data.used.includes(m.id));
-    if(!pool.length){ data.used=[]; pool=[...SECRET_MISSIONS]; }
-    const m=pool[Math.floor(Math.random()*pool.length)];
-    data.assignments[player]={...m,done:false,awarded:false,assignedAt:new Date().toISOString()};
-    data.used.push(m.id);
-    await store.setJSON("mail",data);
-  }
-  return data.assignments[player];
-}
-export async function completeSecretMission(player){
-  const store=privateStore();
-  let data=await store.get("mail",{type:"json"}) || {used:[],assignments:{}};
-  if(!data.assignments[player]) await ensureSecretMission(player);
-  data=await store.get("mail",{type:"json"}) || data;
-  const a=data.assignments[player];
-  if(!a.done){
-    a.done=true; a.completedAt=new Date().toISOString();
-    const state=await getState();
-    const team=teamOf(state,player);
-    if(team && !a.awarded){
-      state.scores[team]=(state.scores[team]||0)+5;
-      a.awarded=true;
-      await saveState(state);
-    }
-    await store.setJSON("mail",data);
-  }
-  return a;
-}
-
-export async function resetEverything(){
-  const store=gameStore();
-  const priv=privateStore();
-  const fresh=initialState();
-  await store.setJSON("state",fresh);
-  await priv.delete("mail");
-  return fresh;
-}
-
-export function subscriptionKey(endpoint){
-  return "push/"+createHash("sha256").update(endpoint).digest("hex");
-}
+export async function completeSecret(r,s,player,assignmentId){const key=mailKey(player);const mail=(await r.get(key))||[];const a=mail.find(x=>x.assignmentId===assignmentId);if(!a)throw new Error("MAIL_NOT_FOUND");if(!a.done){a.done=true;a.completedAt=new Date().toISOString();const team=teamOf(s,player);if(team){s.scores[team]+=5;a.awardedTeam=team;a.points=5;addHistory(s,{type:"secret_complete",team,player,title:a.title,points:5})}await r.set(key,mail)}return {s,mail}}
+export async function archiveAndReset(r,s){const first={};for(const t of ["mission","secret","chaos","song"])first[t]=s.drawOrder?.[t]?.[0]||null;await r.set(LAST_KEY,{gameId:s.gameId,first,drawOrder:s.drawOrder||{}});for(const p of PLAYERS)await r.del(mailKey(p));const fresh=initialState();await r.set(STATE_KEY,fresh);return fresh}

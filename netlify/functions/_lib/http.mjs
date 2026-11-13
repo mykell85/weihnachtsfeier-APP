@@ -1,0 +1,3 @@
+export function reply(status,data){return Response.json(data,{status,headers:{"Cache-Control":"no-store"}})}
+export async function body(req){try{return await req.json()}catch{return {}}}
+export function errMessage(e){const m=e?.message||"ERROR";const map={BUSY:"Das Spiel wird gerade aktualisiert. Bitte noch einmal tippen.",NOT_STARTED:"Das Spiel wurde noch nicht gestartet.",GAME_OVER:"Die Partie ist beendet.",PENDING:"Erst die aktuelle Aktion abschließen.",NOT_YOUR_TURN:"Nur ein Mitglied des aktiven Teams darf das tun.",NO_PENDING:"Es gibt keine offene Aktion.",NO_REDRAW:"Kein Wunschzettel-Joker verfügbar.",MAIL_NOT_FOUND:"Wichtelpost nicht gefunden."};return map[m]||m}

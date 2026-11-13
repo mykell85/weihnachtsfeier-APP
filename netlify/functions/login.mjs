@@ -1,11 +1,3 @@
-import { PLAYERS, PINS, makeToken } from "./_lib/config.mjs";
-export default async (req) => {
-  if(req.method!=="POST") return new Response("Method Not Allowed",{status:405});
-  let body={}; try{body=await req.json()}catch{}
-  const name=String(body.name||"");
-  const pin=String(body.pin||"");
-  if(!PLAYERS.includes(name) || PINS[name]!==pin){
-    return Response.json({ok:false,error:"Name oder Wichtelcode stimmt nicht."},{status:401});
-  }
-  return Response.json({ok:true,token:makeToken(name),name});
-};
+import { PLAYERS,PINS,makeToken } from "./_lib/config.mjs";
+import { reply,body } from "./_lib/http.mjs";
+export default async (req)=>{if(req.method!=="POST")return reply(405,{error:"METHOD"});const b=await body(req);const name=String(b.name||"");const pin=String(b.pin||"");if(!PLAYERS.includes(name)||PINS[name]!==pin)return reply(401,{error:"Name oder Wichtelcode stimmt nicht."});return reply(200,{token:makeToken(name),name})}

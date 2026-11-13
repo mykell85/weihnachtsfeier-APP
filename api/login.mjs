@@ -1,0 +1,2 @@
+import { PLAYERS,PINS,makeToken } from "./_lib/config.mjs";import { json,body } from "./_lib/http.mjs";
+export default async function handler(req,res){if(req.method!=="POST")return json(res,405,{error:"METHOD"});const b=await body(req);const name=String(b.name||"");const pin=String(b.pin||"");if(!PLAYERS.includes(name)||PINS[name]!==pin)return json(res,401,{error:"Name oder Wichtelcode stimmt nicht."});return json(res,200,{token:makeToken(name),name})}

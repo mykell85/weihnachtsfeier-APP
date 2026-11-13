@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#071a2c">
 <title>MOB-Weihnachtsfeier 2026</title>
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="stylesheet" href="/styles.css?v=board15">
+<link rel="stylesheet" href="/styles.css?v=board16">
 </head>
 <body>
 <div id="app" class="app">
@@ -17,6 +17,8 @@
           <img class="crew-art" src="/assets/crew-panel.webp" alt="">
           <img id="crewLeftImg" class="crew-live-avatar left" alt="">
           <img id="crewRightImg" class="crew-live-avatar right" alt="">
+          <div id="crewLeftName" class="crew-live-name left"></div>
+          <div id="crewRightName" class="crew-live-name right"></div>
                     <button class="crew-hit left" type="button" id="crewPrev" aria-label="Vorherige Wichtel"></button>
           <button class="crew-hit right" type="button" id="crewNext" aria-label="Nächste Wichtel"></button>
           <div id="crewDots" class="crew-dots-live"></div>
@@ -44,9 +46,9 @@
         <button id="loginChip" class="login-chip" type="button">🎅 Anmelden</button>
         <aside class="score-panel" aria-label="Teams und Punkte">
           <div class="score-heading">Teams & Punkte</div>
-          <div class="score-row"><span>🦌 Rentiere</span><strong id="scoreR">0 P</strong></div>
-          <div class="score-row"><span>🍷 Glühwein</span><strong id="scoreG">0 P</strong></div>
-          <div class="score-row"><span>✨ Lametta</span><strong id="scoreL">0 P</strong></div>
+          <div class="score-row"><span><img src="/assets/team-rentiere.svg" alt=""> Rentiere</span><strong id="scoreR">0 P</strong></div>
+          <div class="score-row"><span><img src="/assets/team-gluehwein.svg" alt=""> Glühwein</span><strong id="scoreG">0 P</strong></div>
+          <div class="score-row"><span><img src="/assets/team-lametta.svg" alt=""> Lametta</span><strong id="scoreL">0 P</strong></div>
           <button id="openRankBtn" class="score-rank-btn" type="button">🏆 Zwischenstand</button>
         </aside>
         <div id="routeLayer" class="route-layer">
@@ -69,15 +71,15 @@
           <div id="diceResult" class="dice-result">Bereit zum Würfeln</div>
           <button id="rollBtn" class="roll-btn" type="button" disabled>WÜRFELN</button>
         </section>
-        <div class="legend"><span class="legend-item mission">🎁 Mission</span><span class="legend-item secret">✉️ Wichtelpost</span><span class="legend-item chaos">🃏 Chaos</span><span class="legend-item song">🎵 Lieder-Rad</span></div>
+        <div class="legend"><span class="legend-item mission"><img src="/assets/icon-mission.svg" alt=""> Mission</span><span class="legend-item secret"><img src="/assets/icon-secret.svg" alt=""> Wichtelpost</span><span class="legend-item chaos"><img src="/assets/icon-chaos.svg" alt=""> Chaos</span><span class="legend-item song"><img src="/assets/icon-song.svg" alt=""> Lieder-Rad</span></div>
       </section>
     </section>
   </main>
   <nav class="bottom-nav cosy-nav">
-    <button class="nav-btn active" data-nav="home">🎄<span>Start</span></button>
-    <button class="nav-btn" data-nav="board">🎲<span>Spielbrett</span></button>
-    <button class="nav-btn" data-nav="mail">📮<span>Wichtelpost</span><b id="mailBadge" class="badge hidden">0</b></button>
-    <button class="nav-btn" data-nav="settings">⚙️<span>Admin</span></button>
+    <button class="nav-btn active" data-nav="home"><img src="/assets/nav-home.svg" alt=""><span>Start</span></button>
+    <button class="nav-btn" data-nav="board"><img src="/assets/nav-board.svg" alt=""><span>Spielbrett</span></button>
+    <button class="nav-btn" data-nav="mail"><img src="/assets/nav-mail.svg" alt=""><span>Wichtelpost</span><b id="mailBadge" class="badge hidden">0</b></button>
+    <button class="nav-btn" data-nav="settings"><img src="/assets/nav-admin.svg" alt=""><span>Admin</span></button>
   </nav>
 </div>
 
@@ -138,10 +140,10 @@
   <p>Setzt Teams, Positionen, Punkte, gezogene Aufgaben und Wichtelpost zurück. Die letzte Partie wird nur für die Anti-Wiederholungslogik gemerkt.</p>
   <label>Admin-Code<input id="adminPin" inputmode="numeric" maxlength="6" placeholder="2026"></label>
   <button id="resetBtn" class="danger">Komplette Partie zurücksetzen</button>
-  <p class="build">Build: BOARD-V1.5-NETLIFY</p>
+  <p class="build">Build: BOARD-V1.6-NETLIFY</p>
  </div>
 </div>
 
-<script type="module" src="/app.js?v=board15"></script>
+<script type="module" src="/app.js?v=board16"></script>
 </body>
 </html>

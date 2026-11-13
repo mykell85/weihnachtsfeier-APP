@@ -1,2 +1,0 @@
-import { authName } from "./_lib/config.mjs";import { redis,mailKey } from "./_lib/store.mjs";import { getState,publicState } from "./_lib/game.mjs";import { json,errMessage } from "./_lib/http.mjs";
-export default async function handler(req,res){if(req.method!=="GET")return json(res,405,{error:"METHOD"});try{const r=redis();const name=authName(req);const s=await getState(r);const mail=name?(await r.get(mailKey(name))||[]):[];return json(res,200,{state:publicState(s,name),mail})}catch(e){return json(res,500,{error:errMessage(e)})}}
